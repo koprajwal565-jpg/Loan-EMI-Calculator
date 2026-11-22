@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Amortization Schedule – Calculation #{{ calc.id }} – SmartLoan{% endblock %}
+{% block page_title %}Amortization Repayment Schedule{% endblock %}
+{% block page_subtitle %}Month-by-month repayment breakdown with interest, principal, and zero-balance reconciliation.{% endblock %}
+
+{% block content %}
+<!-- Top Header & Summary Pill -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('results', calc_id=calc.id) }}" class="text-decoration-none">Calculation #{{ calc.id }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Amortization Schedule</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <span class="badge-smart badge-smart-blue">{{ calc.loan_type }}</span>
+            <span class="text-muted small">Principal: <strong>{{ calc.loan_amount | currency }}</strong></span>
+            <span class="text-muted small">&bull; Rate: <strong>{{ calc.annual_interest_rate }}%</strong></span>
+            <span class="text-muted small">&bull; Tenure: <strong>{{ calc.tenure_months }} Months</strong></span>
+            <span class="text-muted small">&bull; Monthly EMI: <strong class="text-primary">{{ calc.monthly_emi | currency }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Export & Navigation Actions -->
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('export_pdf', calc_id=calc.id) }}" class="btn-smart btn-smart-secondary" target="_blank">
+            <i class="bi bi-file-earmark-pdf-fill text-danger"></i> Download PDF
+        </a>
+        <a href="{{ url_for('export_csv', calc_id=calc.id) }}" class="btn-smart btn-smart-secondary">
+            <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i> Download CSV
+        </a>
+        <a href="{{ url_for('results', calc_id=calc.id) }}" class="btn-smart btn-smart-outline">
+            <i class="bi bi-arrow-left"></i> Back to Result
+        </a>
+    </div>
+</div>
+
+<!-- Controls Bar: Search & Pagination Display -->
+<div class="card-smart mb-3">
+    <div class="card-smart-body py-3">
+        <div class="row g-3 align-items-center justify-content-between">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="amortTableSearch" class="form-control-smart border-start-0 ps-0" placeholder="Search by month, balance, or instalment...">
+                </div>
+            </div>
+
+            <div class="col-md-7 d-flex flex-wrap justify-content-md-end align-items-center gap-2">
+                <span class="text-muted small">
+                    Showing <strong>{{ schedule | length }}</strong> of <strong>{{ total_rows }}</strong> instalments
+                </span>
+
+                {% if total_pages > 1 or show_all %}
+                    <div class="btn-group btn-group-sm ms-2" role="group">
+                        {% if show_all %}
+                            <a href="{{ url_for('amortization', calc_id=calc.id, page=1, per_page=per_page, all=0) }}" class="btn btn-outline-secondary active">
+                                Paginated View
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('amortization', calc_id=calc.id, all=1) }}" class="btn btn-outline-secondary">
+                                View Full {{ total_rows }} Months
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Amortization Schedule Table -->
+<div class="card-smart">
+    <div class="card-smart-body p-0">
+        <div class="table-smart-responsive">
+            <table class="table-smart mb-0" id="amortizationTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 80px;">Month</th>
+                        <th class="text-end">Opening Balance (₹)</th>
+                        <th class="text-end">Monthly EMI (₹)</th>
+                        <th class="text-end">Principal Paid (₹)</th>
+                        <th class="text-end">Interest Paid (₹)</th>
+                        <th class="text-end">Closing Balance (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in schedule %}
+                        <tr {% if row.month == calc.tenure_months %}class="table-success fw-bold"{% endif %}>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ row.month }}</span>
+                            </td>
+                            <td class="amount-col">{{ row.opening_balance | currency }}</td>
+                            <td class="amount-col text-primary">{{ row.emi | currency }}</td>
+                            <td class="amount-col text-success">{{ row.principal_paid | currency }}</td>
+                            <td class="amount-col text-warning">{{ row.interest_paid | currency }}</td>
+                            <td class="amount-col {% if row.closing_balance == 0 %}text-success fw-bold{% endif %}">
+                                {% if row.closing_balance == 0 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">₹0.00 (Fully Repaid)</span>
+                                {% else %}
+                                    {{ row.closing_balance | currency }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination Controls (if not showing all and multiple pages) -->
+    {% if total_pages > 1 and not show_all %}
+        <div class="card-smart-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+            <span class="text-muted small">
+                Page <strong>{{ current_page }}</strong> of <strong>{{ total_pages }}</strong>
+            </span>
+
+            <nav aria-label="Amortization pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('amortization', calc_id=calc.id, page=1, per_page=per_page) }}" title="First Page">&laquo;</a>
+                    </li>
+                    <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('amortization', calc_id=calc.id, page=current_page-1, per_page=per_page) }}" title="Previous Page">&lsaquo; Prev</a>
+                    </li>
+
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == current_page or p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+                            <li class="page-item {% if p == current_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('amortization', calc_id=calc.id, page=p, per_page=per_page) }}">{{ p }}</a>
+                            </li>
+                        {% elif p == current_page - 3 or p == current_page + 3 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('amortization', calc_id=calc.id, page=current_page+1, per_page=per_page) }}" title="Next Page">Next &rsaquo;</a>
+                    </li>
+                    <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('amortization', calc_id=calc.id, page=total_pages, per_page=per_page) }}" title="Last Page">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Explanatory Reassurance Box -->
+<div class="card-smart mt-4">
+    <div class="card-smart-body bg-light">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-patch-check-fill text-success fs-3 flex-shrink-0"></i>
+            <div>
+                <h6 class="fw-bold mb-1">Mathematical Precision & Zero-Balance Guarantee</h6>
+                <small class="text-muted">
+                    In month 1, the interest is highest because the full principal is outstanding. As you make each monthly payment, 
+                    the principal drops, reducing subsequent interest charges and allowing a higher share of each EMI to extinguish principal. 
+                    In Month {{ calc.tenure_months }} (the final instalment), an automated rounding adjustment guarantees the loan closing balance resolves exactly to ₹0.00.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

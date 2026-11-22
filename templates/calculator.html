@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}EMI Calculator – SmartLoan{% endblock %}
+{% block page_title %}Loan EMI Calculator{% endblock %}
+{% block page_subtitle %}Input principal, interest rate, and repayment duration to calculate monthly instalments.{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-smart">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-sliders text-primary"></i> Loan Parameters & Configuration
+                </h5>
+                <span class="badge-smart badge-smart-blue">Standard Reducing Balance</span>
+            </div>
+            <div class="card-smart-body">
+                <form action="{{ url_for('calculate') }}" method="POST" id="emiCalcForm">
+                    <!-- 1. Loan Amount -->
+                    <div class="mb-4">
+                        <label class="form-label-smart" for="loan_amount">
+                            1. Loan Amount (₹) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted fw-bold">₹</span>
+                            <input type="number" step="any" class="form-control-smart form-control-lg" id="loan_amount" name="loan_amount" value="{{ prefill.loan_amount }}" placeholder="e.g. 1500000" min="1000" max="100000000" required>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted">Permitted range: ₹1,000 to ₹10,00,00,000 (10 Crores)</small>
+                        </div>
+                        <div class="input-helper-chips mt-2">
+                            <span class="text-muted small me-2 align-self-center">Quick Presets:</span>
+                            <button type="button" class="chip-btn" data-target="loan_amount" data-value="300000">₹3 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="loan_amount" data-value="1000000">₹10 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="loan_amount" data-value="2500000">₹25 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="loan_amount" data-value="5000000">₹50 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="loan_amount" data-value="10000000">₹1 Crore</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Annual Interest Rate -->
+                    <div class="mb-4">
+                        <label class="form-label-smart" for="annual_interest_rate">
+                            2. Annual Interest Rate (%) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control-smart form-control-lg" id="annual_interest_rate" name="annual_interest_rate" value="{{ prefill.annual_interest_rate }}" placeholder="e.g. 8.5" min="0" max="100" required>
+                            <span class="input-group-text bg-light text-muted fw-bold">% p.a.</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted">Permitted range: 0% (Zero-interest promo) to 100%</small>
+                        </div>
+                        <div class="input-helper-chips mt-2">
+                            <span class="text-muted small me-2 align-self-center">Common Rates:</span>
+                            <button type="button" class="chip-btn" data-target="annual_interest_rate" data-value="0.0">0.0% (Promo)</button>
+                            <button type="button" class="chip-btn" data-target="annual_interest_rate" data-value="8.40">8.40% (Home Loan)</button>
+                            <button type="button" class="chip-btn" data-target="annual_interest_rate" data-value="9.25">9.25% (Auto Loan)</button>
+                            <button type="button" class="chip-btn" data-target="annual_interest_rate" data-value="11.50">11.50% (Personal)</button>
+                        </div>
+                    </div>
+
+                    <!-- 3 & 4. Loan Tenure & Unit -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-7">
+                            <label class="form-label-smart" for="tenure_value">
+                                3. Loan Tenure <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" step="1" class="form-control-smart form-control-lg" id="tenure_value" name="tenure_value" value="{{ prefill.tenure_value }}" placeholder="e.g. 5" min="1" max="480" required>
+                            <small class="text-muted">Enter duration of loan repayment</small>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label-smart" for="tenure_unit">
+                                4. Tenure Unit <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-control-smart form-control-lg" id="tenure_unit" name="tenure_unit">
+                                <option value="years" {% if prefill.tenure_unit == 'years' %}selected{% endif %}>Years</option>
+                                <option value="months" {% if prefill.tenure_unit == 'months' %}selected{% endif %}>Months</option>
+                            </select>
+                            <small class="text-muted">Up to 40 years (480 months)</small>
+                        </div>
+                    </div>
+
+                    <!-- 5. Loan Type -->
+                    <div class="mb-4">
+                        <label class="form-label-smart" for="loan_type">
+                            5. Loan Category / Type <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control-smart form-control-lg" id="loan_type" name="loan_type">
+                            {% for lt in loan_types %}
+                                <option value="{{ lt }}" {% if prefill.loan_type == lt %}selected{% endif %}>{{ lt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <button type="submit" class="btn-smart btn-smart-primary px-4 py-3 fs-6">
+                            <i class="bi bi-calculator-fill"></i> Calculate EMI & Generate Schedule
+                        </button>
+                        <button type="reset" class="btn-smart btn-smart-secondary px-4 py-3 fs-6">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Formula Information Card -->
+        <div class="card-smart">
+            <div class="card-smart-body bg-light">
+                <div class="d-flex gap-3">
+                    <i class="bi bi-info-circle-fill text-primary fs-3 flex-shrink-0"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Mathematical Formula Reference</h6>
+                        <p class="small text-muted mb-2">
+                            The calculation uses standard reducing-balance monthly amortization:
+                        </p>
+                        <code class="d-block p-2 bg-white rounded border mb-2 text-dark font-monospace">
+                            EMI = [P &times; r &times; (1 + r)^n] / [(1 + r)^n - 1]
+                        </code>
+                        <small class="text-muted d-block">
+                            Where <strong>P</strong> = Principal Loan Amount, <strong>r</strong> = Monthly Interest Rate (Annual Rate / 12 / 100), and <strong>n</strong> = Total Number of Monthly Instalments.
+                            In promotional zero-interest loans (r = 0), the application gracefully evaluates <code>EMI = P / n</code>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

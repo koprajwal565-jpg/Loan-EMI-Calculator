@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Loan Comparison Tool – SmartLoan{% endblock %}
+{% block page_title %}Multi-Offer Loan Comparison{% endblock %}
+{% block page_subtitle %}Compare up to three loan offers side-by-side to determine overall cost vs monthly burden.{% endblock %}
+
+{% block content %}
+<!-- Comparison Form Card -->
+<div class="card-smart mb-4">
+    <div class="card-smart-header">
+        <h5 class="card-smart-title">
+            <i class="bi bi-bar-chart-steps text-primary"></i> Configure Loan Offers to Compare
+        </h5>
+        <span class="badge-smart badge-smart-blue">Up to 3 Simultaneous Offers</span>
+    </div>
+    <div class="card-smart-body">
+        <form action="{{ url_for('comparison') }}" method="POST">
+            <div class="row g-4">
+                <!-- Loan Offer 1 -->
+                <div class="col-lg-4">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-primary">
+                                <i class="bi bi-1-circle-fill me-1"></i> Loan Offer A
+                            </h6>
+                            <input type="text" name="label_1" class="form-control form-control-sm text-end" style="max-width: 130px;" value="{{ offers[0].label if offers|length > 0 else 'Offer A' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Principal Amount (₹)</label>
+                            <input type="number" step="any" name="amount_1" class="form-control-smart" value="{{ offers[0].amount if offers|length > 0 else '2500000' }}" placeholder="e.g. 2500000" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Annual Interest Rate (%)</label>
+                            <input type="number" step="0.01" name="rate_1" class="form-control-smart" value="{{ offers[0].rate if offers|length > 0 else '8.5' }}" placeholder="e.g. 8.5" required>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="form-label-smart small">Tenure</label>
+                                <input type="number" step="1" name="tenure_1" class="form-control-smart" value="{{ offers[0].tenure if offers|length > 0 else '10' }}" required>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label-smart small">Unit</label>
+                                <select name="unit_1" class="form-control-smart">
+                                    <option value="years" {% if offers|length > 0 and offers[0].unit == 'years' %}selected{% endif %}>Years</option>
+                                    <option value="months" {% if offers|length > 0 and offers[0].unit == 'months' %}selected{% endif %}>Months</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label-smart small">Category</label>
+                            <select name="type_1" class="form-control-smart">
+                                {% for lt in loan_types %}
+                                    <option value="{{ lt }}" {% if offers|length > 0 and offers[0].type == lt %}selected{% endif %}>{{ lt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loan Offer 2 -->
+                <div class="col-lg-4">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-primary">
+                                <i class="bi bi-2-circle-fill me-1"></i> Loan Offer B
+                            </h6>
+                            <input type="text" name="label_2" class="form-control form-control-sm text-end" style="max-width: 130px;" value="{{ offers[1].label if offers|length > 1 else 'Offer B' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Principal Amount (₹)</label>
+                            <input type="number" step="any" name="amount_2" class="form-control-smart" value="{{ offers[1].amount if offers|length > 1 else '2500000' }}" placeholder="e.g. 2500000" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Annual Interest Rate (%)</label>
+                            <input type="number" step="0.01" name="rate_2" class="form-control-smart" value="{{ offers[1].rate if offers|length > 1 else '8.75' }}" placeholder="e.g. 8.75" required>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="form-label-smart small">Tenure</label>
+                                <input type="number" step="1" name="tenure_2" class="form-control-smart" value="{{ offers[1].tenure if offers|length > 1 else '15' }}" required>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label-smart small">Unit</label>
+                                <select name="unit_2" class="form-control-smart">
+                                    <option value="years" {% if offers|length > 1 and offers[1].unit == 'years' %}selected{% endif %}>Years</option>
+                                    <option value="months" {% if offers|length > 1 and offers[1].unit == 'months' %}selected{% endif %}>Months</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label-smart small">Category</label>
+                            <select name="type_2" class="form-control-smart">
+                                {% for lt in loan_types %}
+                                    <option value="{{ lt }}" {% if offers|length > 1 and offers[1].type == lt %}selected{% endif %}>{{ lt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loan Offer 3 -->
+                <div class="col-lg-4">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-primary">
+                                <i class="bi bi-3-circle-fill me-1"></i> Loan Offer C (Optional)
+                            </h6>
+                            <input type="text" name="label_3" class="form-control form-control-sm text-end" style="max-width: 130px;" value="{{ offers[2].label if offers|length > 2 else 'Offer C' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Principal Amount (₹)</label>
+                            <input type="number" step="any" name="amount_3" class="form-control-smart" value="{{ offers[2].amount if offers|length > 2 else '2500000' }}" placeholder="e.g. 2500000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-smart small">Annual Interest Rate (%)</label>
+                            <input type="number" step="0.01" name="rate_3" class="form-control-smart" value="{{ offers[2].rate if offers|length > 2 else '9.0' }}" placeholder="e.g. 9.0">
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="form-label-smart small">Tenure</label>
+                                <input type="number" step="1" name="tenure_3" class="form-control-smart" value="{{ offers[2].tenure if offers|length > 2 else '20' }}">
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label-smart small">Unit</label>
+                                <select name="unit_3" class="form-control-smart">
+                                    <option value="years" {% if offers|length > 2 and offers[2].unit == 'years' %}selected{% endif %}>Years</option>
+                                    <option value="months" {% if offers|length > 2 and offers[2].unit == 'months' %}selected{% endif %}>Months</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label-smart small">Category</label>
+                            <select name="type_3" class="form-control-smart">
+                                {% for lt in loan_types %}
+                                    <option value="{{ lt }}" {% if offers|length > 2 and offers[2].type == lt %}selected{% endif %}>{{ lt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <button type="submit" class="btn-smart btn-smart-primary px-5 py-2 fs-6">
+                    <i class="bi bi-arrow-left-right"></i> Run Financial Comparison
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Comparison Results Section -->
+{% if comparison_result %}
+    <!-- Best Value Highlight Card -->
+    <div class="card-smart border-success border-2 mb-4">
+        <div class="card-smart-body bg-success-subtle">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="metric-icon-box metric-icon-green" style="width: 50px; height: 50px; font-size: 1.6rem;">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div>
+                        <span class="badge-smart badge-smart-green mb-1">Recommended Best Overall Financial Value</span>
+                        <h4 class="fw-bold mb-0 text-success">
+                            {{ comparison_result.loans[comparison_result.lowest_payment_index].label }} has the Lowest Total Repayment
+                        </h4>
+                        <p class="mb-0 small text-muted">
+                            Total repayment is <strong>{{ comparison_result.loans[comparison_result.lowest_payment_index].total_payment | currency }}</strong> 
+                            (Total interest: <strong>{{ comparison_result.loans[comparison_result.lowest_payment_index].total_interest | currency }}</strong>).
+                        </p>
+                    </div>
+                </div>
+                <div class="text-md-end">
+                    <span class="badge bg-primary px-3 py-2 fs-6">
+                        Monthly EMI: {{ comparison_result.loans[comparison_result.lowest_payment_index].monthly_emi | currency }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Educational Financial Analysis Callout -->
+    <div class="card-smart mb-4">
+        <div class="card-smart-header">
+            <h5 class="card-smart-title">
+                <i class="bi bi-lightbulb-fill text-warning"></i> Financial Trade-Off & Decision Analysis
+            </h5>
+            <span class="badge-smart badge-smart-navy">Educational Advisory</span>
+        </div>
+        <div class="card-smart-body">
+            {% for note in comparison_result.analysis_notes %}
+                <div class="d-flex gap-2 mb-2">
+                    <i class="bi bi-arrow-right-circle-fill text-primary mt-1"></i>
+                    <p class="mb-0 text-secondary" style="font-size: 0.95rem;">{{ note }}</p>
+                </div>
+            {% endfor %}
+            <div class="alert alert-info mt-3 mb-0 small">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Borrower Tip:</strong> While an offer with a longer repayment period gives a lower monthly instalment, 
+                you end up paying significantly more in compounding interest over time. If your monthly cash flow allows, 
+                opting for shorter tenure or prepaying principal delivers substantial lifetime savings.
+            </div>
+        </div>
+    </div>
+
+    <!-- Side-by-Side Comparison Table -->
+    <div class="card-smart mb-4">
+        <div class="card-smart-header">
+            <h5 class="card-smart-title">
+                <i class="bi bi-table text-primary"></i> Side-by-Side Metric Matrix
+            </h5>
+        </div>
+        <div class="card-smart-body p-0">
+            <div class="table-smart-responsive">
+                <table class="table-smart mb-0">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            {% for loan in comparison_result.loans %}
+                                <th class="text-center {% if loop.index0 == comparison_result.lowest_payment_index %}table-success{% endif %}">
+                                    {{ loan.label }}
+                                    {% if loop.index0 == comparison_result.lowest_payment_index %}
+                                        <span class="badge bg-success ms-1 small">Lowest Cost</span>
+                                    {% elif loop.index0 == comparison_result.lowest_emi_index %}
+                                        <span class="badge bg-primary ms-1 small">Lowest EMI</span>
+                                    {% endif %}
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Loan Amount</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center">{{ loan.loan_amount | currency }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Annual Interest Rate</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center">{{ loan.annual_interest_rate }}%</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Repayment Tenure</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center">{{ loan.tenure_months }} Months ({{ loan.tenure_years }} Yrs)</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold text-primary">Monthly EMI</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center fw-bold fs-6 {% if loop.index0 == comparison_result.lowest_emi_index %}text-success{% else %}text-primary{% endif %}">
+                                    {{ loan.monthly_emi | currency }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-warning">Total Interest Payable</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center fw-bold text-warning">{{ loan.total_interest | currency }}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="table-light">
+                            <td class="fw-bold text-success">Total Repayment Amount</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center fw-bold fs-6 {% if loop.index0 == comparison_result.lowest_payment_index %}text-success fw-bolder{% endif %}">
+                                    {{ loan.total_payment | currency }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Interest Percentage</td>
+                            {% for loan in comparison_result.loans %}
+                                <td class="text-center">{{ loan.interest_pct }}%</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matplotlib Comparison Chart -->
+    {% if chart_data_uri %}
+        <div class="card-smart">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-graph-up text-primary"></i> Visual Comparison Charts
+                </h5>
+                <span class="badge-smart badge-smart-navy">Generated with Matplotlib</span>
+            </div>
+            <div class="card-smart-body text-center">
+                <div class="chart-container-box">
+                    <img src="{{ chart_data_uri }}" alt="Loan Comparison Chart" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

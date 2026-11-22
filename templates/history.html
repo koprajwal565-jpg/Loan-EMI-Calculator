@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Calculation History – SmartLoan{% endblock %}
+{% block page_title %}Calculation History{% endblock %}
+{% block page_subtitle %}Persistent archive of all loan calculations stored securely in SQLite.{% endblock %}
+
+{% block content %}
+<!-- Top Stats & Clear Action Bar -->
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-md-8">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="p-2 px-3 bg-white border rounded-3 shadow-sm">
+                <span class="text-muted small d-block">Saved Records</span>
+                <strong class="fs-5 text-primary">{{ calculations | length }}</strong>
+            </div>
+            <div class="p-2 px-3 bg-white border rounded-3 shadow-sm">
+                <span class="text-muted small d-block">Total Loan Volume</span>
+                <strong class="fs-5 text-success">{{ stats.total_loan_volume | currency }}</strong>
+            </div>
+            <div class="p-2 px-3 bg-white border rounded-3 shadow-sm">
+                <span class="text-muted small d-block">Total Cumulative Interest</span>
+                <strong class="fs-5 text-warning">{{ stats.total_interest_volume | currency }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 text-md-end">
+        {% if calculations %}
+            <form action="{{ url_for('history_clear') }}" method="POST" class="d-inline" onsubmit="return confirmAction('WARNING: Are you sure you want to permanently clear all calculation history? This action cannot be undone.');">
+                <button type="submit" class="btn-smart btn-smart-danger btn-sm">
+                    <i class="bi bi-trash3-fill"></i> Clear All History
+                </button>
+            </form>
+        {% endif %}
+        <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-primary btn-sm ms-2">
+            <i class="bi bi-plus-circle"></i> New Calculation
+        </a>
+    </div>
+</div>
+
+<!-- History Table Card -->
+<div class="card-smart">
+    <div class="card-smart-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h5 class="card-smart-title">
+            <i class="bi bi-journal-text text-primary"></i> Historical Loan Records
+        </h5>
+
+        {% if calculations %}
+            <div style="min-width: 250px;">
+                <input type="text" id="historyTableSearch" class="form-control-smart form-control-sm" placeholder="Filter by ID, category, or amount...">
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card-smart-body p-0">
+        {% if calculations %}
+            <div class="table-smart-responsive">
+                <table class="table-smart mb-0" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">ID</th>
+                            <th>Date & Time</th>
+                            <th>Category</th>
+                            <th class="text-end">Principal</th>
+                            <th>Rate</th>
+                            <th>Tenure</th>
+                            <th class="text-end">Monthly EMI</th>
+                            <th class="text-end">Total Interest</th>
+                            <th class="text-end">Total Repayment</th>
+                            <th class="text-center" style="width: 140px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in calculations %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-light text-dark border">#{{ row.id }}</span>
+                                </td>
+                                <td class="small text-muted text-nowrap">{{ row.created_at }}</td>
+                                <td>
+                                    <span class="badge-smart badge-smart-blue">{{ row.loan_type }}</span>
+                                </td>
+                                <td class="amount-col">{{ row.loan_amount | currency }}</td>
+                                <td>{{ row.annual_interest_rate }}%</td>
+                                <td>{{ row.tenure_months }} mos</td>
+                                <td class="amount-col text-primary fw-bold">{{ row.monthly_emi | currency }}</td>
+                                <td class="amount-col text-warning">{{ row.total_interest | currency }}</td>
+                                <td class="amount-col text-success">{{ row.total_payment | currency }}</td>
+                                <td class="text-center text-nowrap">
+                                    <a href="{{ url_for('results', calc_id=row.id) }}" class="btn-smart btn-smart-outline btn-sm py-1 px-2" title="View Result Dashboard">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('amortization', calc_id=row.id) }}" class="btn-smart btn-smart-secondary btn-sm py-1 px-2" title="Amortization Schedule">
+                                        <i class="bi bi-calendar3"></i>
+                                    </a>
+                                    <form action="{{ url_for('history_delete', calc_id=row.id) }}" method="POST" class="d-inline" onsubmit="return confirmAction('Delete calculation #{{ row.id }}?');">
+                                        <button type="submit" class="btn-smart btn-smart-outline text-danger btn-sm py-1 px-2" title="Delete Record">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-5 text-center text-muted">
+                <i class="bi bi-inbox display-4 mb-3 d-block text-secondary"></i>
+                <h5 class="fw-bold text-dark">No Calculation Records Found</h5>
+                <p class="mb-4 text-muted">Your calculation history is currently empty. Run an EMI calculation to save records here.</p>
+                <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-primary">
+                    <i class="bi bi-calculator"></i> Run First Calculation
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found – SmartLoan{% endblock %}
+{% block page_title %}Error 404{% endblock %}
+{% block page_subtitle %}The requested financial resource or calculation was not found.{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center">
+        <div class="card-smart p-5">
+            <div class="metric-icon-box metric-icon-amber mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+                <i class="bi bi-exclamation-circle-fill"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-2">Resource Not Found</h3>
+            <p class="text-muted mb-4">
+                The loan calculation, report or page you are trying to reach does not exist, has been removed, or was deleted from the history database.
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{{ url_for('index') }}" class="btn-smart btn-smart-primary">
+                    <i class="bi bi-house-door-fill"></i> Return to Dashboard
+                </a>
+                <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-secondary">
+                    <i class="bi bi-calculator"></i> New Calculation
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

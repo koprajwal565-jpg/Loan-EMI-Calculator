@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}About Project – SmartLoan{% endblock %}
+{% block page_title %}About SmartLoan{% endblock %}
+{% block page_subtitle %}Semester 3 Engineering College Project &bull; Programming with Python{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Left Column -->
+    <div class="col-lg-8">
+        <!-- Overview Card -->
+        <div class="card-smart mb-4">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-info-circle-fill text-primary"></i> Project Overview
+                </h5>
+                <span class="badge-smart badge-smart-green">Academic Year 2025–2026</span>
+            </div>
+            <div class="card-smart-body">
+                <h4 class="fw-bold text-primary mb-3">SmartLoan – Loan EMI Calculator and Repayment Planner</h4>
+                <p class="text-secondary lead" style="font-size: 1.05rem;">
+                    <strong>SmartLoan</strong> is a Python-based application designed to calculate monthly loan instalments, estimate total interest payable and generate detailed repayment schedules. It helps users understand their loan repayment obligations and compare different loan options.
+                </p>
+                <p class="text-secondary">
+                    Developed as a third-semester engineering capstone project for the subject <em>Programming with Python</em>, SmartLoan bridges core algorithmic mathematical implementations in Python with an enterprise-grade fintech dashboard interface.
+                </p>
+
+                <hr class="my-4">
+
+                <!-- Objectives -->
+                <h5 class="fw-bold mb-3 text-dark">
+                    <i class="bi bi-bullseye text-danger me-2"></i>Project Objectives
+                </h5>
+                <ul class="list-unstyled d-flex flex-column gap-2 text-secondary">
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <span><strong>Algorithmic Accuracy:</strong> Eliminate floating-point round-off errors in financial computation using Python's high-precision math and Decimal standards.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <span><strong>Transparent Amortization:</strong> Demystify the reducing-balance mechanism by providing borrowers with complete month-by-month opening, interest, principal, and closing balance breakdowns.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <span><strong>Financial Decision Support:</strong> Enable prospective borrowers to compare multiple loan terms side-by-side, visually illustrating the trade-off between lower monthly EMI and higher compounding lifetime interest.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <span><strong>Enterprise Exportability:</strong> Generate professional downloadable PDF dossiers and CSV spreadsheets for offline bookkeeping and documentation.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <span><strong>Safe Data Persistence:</strong> Implement structured SQLite database persistence using parameterized SQL to prevent SQL injection vulnerabilities.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Working Methodology & Flow -->
+        <div class="card-smart mb-4">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-gear-wide-connected text-primary"></i> Working Methodology & Calculation Engine
+                </h5>
+            </div>
+            <div class="card-smart-body">
+                <p class="text-secondary">
+                    The application operates in five orchestrated phases:
+                </p>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <h6 class="fw-bold text-primary mb-1">1. Input Ingestion & Sanitization</h6>
+                        <small class="text-muted">
+                            HTTP POST payload receives principal (P), annual interest rate (R), and tenure (N). Server-side Python logic validates boundaries (1,000 &le; P &le; 100,000,000; 0 &le; R &le; 100; 1 &le; N &le; 480) and normalizes annual tenure to monthly periods.
+                        </small>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light">
+                        <h6 class="fw-bold text-primary mb-1">2. Core Reducing-Balance Mathematics</h6>
+                        <small class="text-muted">
+                            For standard loans where monthly rate \(r > 0\), EMI is computed via \(EMI = \frac{P \cdot r \cdot (1+r)^n}{(1+r)^n - 1}\). For promotional zero-interest programs (\(r = 0\)), the formula gracefully switches to \(EMI = \frac{P}{n}\).
+                        </small>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light">
+                        <h6 class="fw-bold text-primary mb-1">3. Month-by-Month Amortization Simulation</h6>
+                        <small class="text-muted">
+                            A loop iterates through all \(n\) months. Each month calculates interest on opening balance, applies remainder to principal reduction, updates closing balance, and applies a precise final-month adjustment so closing balance strictly equals ₹0.00.
+                        </small>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light">
+                        <h6 class="fw-bold text-primary mb-1">4. Chart Generation & Persistence</h6>
+                        <small class="text-muted">
+                            Matplotlib generates high-DPI donut charts comparing principal vs. interest. Results are committed to the SQLite database via parameterized queries.
+                        </small>
+                    </div>
+
+                    <div class="p-3 border rounded-3 bg-light">
+                        <h6 class="fw-bold text-primary mb-1">5. Reporting & Export Pipeline</h6>
+                        <small class="text-muted">
+                            ReportLab compiles a multi-page PDF document featuring executive metrics, embedded charts, and formatted tables with dynamic "Page X of Y" canvas numbering.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Limitations & Future Scope -->
+        <div class="card-smart">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-exclamation-octagon-fill text-warning"></i> Project Limitations & Future Enhancements
+                </h5>
+            </div>
+            <div class="card-smart-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-danger mb-2">Current System Limitations</h6>
+                        <ul class="text-secondary small ps-3 mb-0">
+                            <li>Assumes fixed annual interest rates throughout the repayment lifecycle (floating-rate step revisions are not modeled).</li>
+                            <li>Does not automatically incorporate bank-specific processing fees, GST, or stamp duty charges.</li>
+                            <li>Prepayment simulation and lump-sum part-payment adjustments are currently calculated manually through custom tenures.</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-success mb-2">Planned Future Enhancements</h6>
+                        <ul class="text-secondary small ps-3 mb-0">
+                            <li>Interactive Prepayment Simulator: Visualizing interest savings when making annual lump-sum part payments.</li>
+                            <li>Floating Interest Rate Scenario Modeler: Stress-testing monthly budget against potential RBI repo rate increases.</li>
+                            <li>User Authentication & Cloud Sync: Multi-user profiles with personal saved loan portfolios.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Column: Tech Stack & Submission Details -->
+    <div class="col-lg-4">
+        <!-- Tech Stack Card -->
+        <div class="card-smart mb-4">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-stack text-primary"></i> Technology Stack
+                </h5>
+            </div>
+            <div class="card-smart-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #3776AB;">
+                            <i class="bi bi-filetype-py"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Python 3.14</strong>
+                            <small class="text-muted">Backend logic & decimal financial math</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #000000;">
+                            <i class="bi bi-globe"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Flask 3.1</strong>
+                            <small class="text-muted">WSGI web framework & routing</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #003B57;">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">SQLite 3</strong>
+                            <small class="text-muted">Relational database storage</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #11557C;">
+                            <i class="bi bi-pie-chart"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Matplotlib 3.11</strong>
+                            <small class="text-muted">Server-side headless chart generation</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #E11D48;">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">ReportLab 5.1</strong>
+                            <small class="text-muted">Programmatic PDF document generation</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="background: #7952B3;">
+                            <i class="bi bi-bootstrap"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Bootstrap 5 & CSS3</strong>
+                            <small class="text-muted">Modern fintech dashboard theme</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Submission Card -->
+        <div class="card-smart">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-mortarboard-fill text-primary"></i> Academic Submission
+                </h5>
+            </div>
+            <div class="card-smart-body">
+                <table class="table table-sm table-borderless small mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Subject:</td>
+                            <td class="fw-bold">Programming with Python</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Semester:</td>
+                            <td class="fw-bold">Semester 3 (B.E. / B.Tech)</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Project:</td>
+                            <td class="fw-bold">SmartLoan Suite</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Standard:</td>
+                            <td class="fw-bold text-success">Passes 100% Automated Tests</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

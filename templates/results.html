@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}EMI Calculation Result – SmartLoan{% endblock %}
+{% block page_title %}Calculation Results Dashboard{% endblock %}
+{% block page_subtitle %}Detailed breakdown of monthly instalments, interest payable, and repayment schedule.{% endblock %}
+
+{% block content %}
+<!-- Top Action / Breadcrumb Bar -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('calculator') }}" class="text-decoration-none">Calculator</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Calculation #{{ calc.id }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge-smart badge-smart-blue">{{ calc.loan_type }}</span>
+            <span class="text-muted small">&bull; Calculated on {{ calc.created_at }}</span>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('amortization', calc_id=calc.id) }}" class="btn-smart btn-smart-primary">
+            <i class="bi bi-calendar3"></i> Full Amortization Schedule
+        </a>
+        <a href="{{ url_for('export_pdf', calc_id=calc.id) }}" class="btn-smart btn-smart-secondary" target="_blank">
+            <i class="bi bi-file-earmark-pdf-fill text-danger"></i> Download PDF
+        </a>
+        <a href="{{ url_for('export_csv', calc_id=calc.id) }}" class="btn-smart btn-smart-outline">
+            <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i> Download CSV
+        </a>
+        <a href="{{ url_for('calculator', amount=calc.loan_amount, rate=calc.annual_interest_rate, tenure=calc.tenure_years, unit='years', type=calc.loan_type) }}" class="btn-smart btn-smart-outline" title="Recalculate with modifications">
+            <i class="bi bi-pencil-square"></i> Modify
+        </a>
+    </div>
+</div>
+
+<!-- Four Major KPI Cards -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Monthly EMI -->
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card border-primary border-2">
+            <div>
+                <div class="metric-title text-primary">Monthly EMI</div>
+                <div class="metric-value text-primary">{{ calc.monthly_emi | currency }}</div>
+                <div class="metric-sub">Payable every month</div>
+            </div>
+            <div class="metric-icon-box metric-icon-blue">
+                <i class="bi bi-credit-card-2-front-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Total Principal -->
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Total Principal</div>
+                <div class="metric-value">{{ calc.loan_amount | currency }}</div>
+                <div class="metric-sub">{{ calc.principal_pct }}% of total repayment</div>
+            </div>
+            <div class="metric-icon-box" style="background-color: #E2E8F0; color: #1E3A8A;">
+                <i class="bi bi-bank2"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Total Interest Payable -->
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Total Interest</div>
+                <div class="metric-value text-warning">{{ calc.total_interest | currency }}</div>
+                <div class="metric-sub">{{ calc.interest_pct }}% of total repayment</div>
+            </div>
+            <div class="metric-icon-box metric-icon-amber">
+                <i class="bi bi-graph-up"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Total Payment -->
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Total Repayment</div>
+                <div class="metric-value text-success">{{ calc.total_payment | currency }}</div>
+                <div class="metric-sub">Principal + Total Interest</div>
+            </div>
+            <div class="metric-icon-box metric-icon-green">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Breakdown: Summary Table & Matplotlib Pie Chart -->
+<div class="row g-4 mb-4">
+    <!-- Left Column: Loan Summary & Ratio Details -->
+    <div class="col-lg-6">
+        <div class="card-smart h-100">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-list-check text-primary"></i> Loan Parameters & Breakdown
+                </h5>
+                <span class="badge-smart badge-smart-green">Verified Reducing Balance</span>
+            </div>
+            <div class="card-smart-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tbody>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-tag me-2 text-primary"></i>Loan Category</td>
+                                <td class="text-end fw-bold py-3">{{ calc.loan_type }}</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-cash me-2 text-primary"></i>Borrowed Principal</td>
+                                <td class="text-end fw-bold py-3">{{ calc.loan_amount | currency }}</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-percent me-2 text-primary"></i>Annual Interest Rate</td>
+                                <td class="text-end fw-bold py-3">{{ calc.annual_interest_rate }}% p.a.</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-clock me-2 text-primary"></i>Repayment Tenure</td>
+                                <td class="text-end fw-bold py-3">{{ calc.tenure_months }} Months ({{ calc.tenure_years }} Years)</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-calendar-event me-2 text-primary"></i>Total Monthly Instalments</td>
+                                <td class="text-end fw-bold py-3">{{ calc.tenure_months }} Payments</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-wallet2 me-2 text-primary"></i>Monthly Instalment (EMI)</td>
+                                <td class="text-end fw-bold text-primary py-3 fs-5">{{ calc.monthly_emi | currency }}</td>
+                            </tr>
+                            <tr class="border-bottom">
+                                <td class="text-muted py-3"><i class="bi bi-arrow-up-right-circle me-2 text-warning"></i>Total Interest Burden</td>
+                                <td class="text-end fw-bold text-warning py-3">{{ calc.total_interest | currency }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-3"><i class="bi bi-cash-coin me-2 text-success"></i>Total Cumulative Repayment</td>
+                                <td class="text-end fw-bolder text-success py-3 fs-5">{{ calc.total_payment | currency }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 p-3 rounded-3 bg-light border">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Principal: <strong>{{ calc.principal_pct }}%</strong></span>
+                        <span>Interest: <strong>{{ calc.interest_pct }}%</strong></span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ calc.principal_pct }}%; background-color: #1E3A8A;" aria-valuenow="{{ calc.principal_pct }}" aria-valuemin="0" aria-valuemax="100" title="Principal Amount"></div>
+                        <div class="progress-bar" role="progressbar" style="width: {{ calc.interest_pct }}%; background-color: #F59E0B;" aria-valuenow="{{ calc.interest_pct }}" aria-valuemin="0" aria-valuemax="100" title="Interest Payable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Python Matplotlib Donut Chart -->
+    <div class="col-lg-6">
+        <div class="card-smart h-100">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-pie-chart-fill text-primary"></i> Principal vs Interest Distribution
+                </h5>
+                <span class="badge-smart badge-smart-navy">Rendered via Matplotlib</span>
+            </div>
+            <div class="card-smart-body d-flex flex-column align-items-center justify-content-center">
+                {% if chart_data_uri %}
+                    <div class="chart-container-box w-100">
+                        <img src="{{ chart_data_uri }}" alt="Principal vs Interest Breakdown Chart" class="img-fluid">
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted p-4">
+                        <i class="bi bi-bar-chart display-4 mb-2"></i>
+                        <p>Chart could not be generated.</p>
+                    </div>
+                {% endif %}
+
+                <div class="mt-4 text-center">
+                    <p class="small text-muted mb-0">
+                        For every <strong>₹100</strong> paid towards this loan, 
+                        <strong>₹{{ calc.principal_pct }}</strong> goes toward paying down your principal, 
+                        and <strong>₹{{ calc.interest_pct }}</strong> is paid to the lender as interest.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Navigation Bar at Bottom -->
+<div class="card-smart">
+    <div class="card-smart-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="metric-icon-box metric-icon-green">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0">Inspect Complete Monthly Amortization Schedule</h6>
+                <small class="text-muted">Review month-by-month opening balance, interest charge, principal deduction, and zero balance resolution.</small>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('amortization', calc_id=calc.id) }}" class="btn-smart btn-smart-primary">
+                <i class="bi bi-arrow-right-circle"></i> Open Amortization Table
+            </a>
+            <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-outline">
+                <i class="bi bi-plus-circle"></i> New Loan
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard – SmartLoan Financial Suite{% endblock %}
+{% block page_title %}Financial Dashboard{% endblock %}
+{% block page_subtitle %}Welcome to SmartLoan. Plan instalments, analyze amortization, and compare loans.{% endblock %}
+
+{% block content %}
+<!-- Welcome Hero Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-smart p-4" style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); color: #FFFFFF;">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(255, 255, 255, 0.15); font-size: 0.8rem; font-weight: 600;">
+                        <i class="bi bi-shield-check text-warning"></i> Certified Accurate Reducing-Balance Engine
+                    </div>
+                    <h2 class="fw-bold mb-2 text-white">SmartLoan Repayment Planner</h2>
+                    <p class="text-light mb-4" style="max-width: 650px; font-size: 0.95rem; opacity: 0.9;">
+                        Empowering borrowers and students to calculate precise Equated Monthly Instalments (EMI), visualize month-by-month principal and interest amortization, and make informed borrowing decisions without hidden surprises.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-primary">
+                            <i class="bi bi-calculator"></i> Launch Calculator
+                        </a>
+                        <a href="{{ url_for('comparison') }}" class="btn-smart btn-smart-secondary">
+                            <i class="bi bi-arrow-left-right"></i> Compare 3 Loan Offers
+                        </a>
+                        <a href="{{ url_for('history') }}" class="btn-smart btn-smart-outline text-white border-light">
+                            <i class="bi bi-clock-history"></i> Saved Records
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center d-none d-lg-block">
+                    <div class="p-3 rounded-4" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
+                        <i class="bi bi-graph-up-arrow display-3 text-info"></i>
+                        <h6 class="mt-2 text-white font-weight-bold">100% Python Powered</h6>
+                        <small class="text-light">Accurate Decimal Calculations & SQLite Storage</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Performance Indicators (KPIs) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Saved Calculations</div>
+                <div class="metric-value">{{ stats.total_calculations }}</div>
+                <div class="metric-sub text-muted">Archived in SQLite database</div>
+            </div>
+            <div class="metric-icon-box metric-icon-blue">
+                <i class="bi bi-archive"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Total Loan Volume</div>
+                <div class="metric-value">{{ stats.total_loan_volume | currency }}</div>
+                <div class="metric-sub text-muted">Calculated principal sum</div>
+            </div>
+            <div class="metric-icon-box metric-icon-green">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Projected Interest</div>
+                <div class="metric-value">{{ stats.total_interest_volume | currency }}</div>
+                <div class="metric-sub text-muted">Cumulative interest calculated</div>
+            </div>
+            <div class="metric-icon-box metric-icon-amber">
+                <i class="bi bi-pie-chart"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <div class="metric-title">Avg. Interest Rate</div>
+                <div class="metric-value">{{ stats.avg_interest_rate }}%</div>
+                <div class="metric-sub text-muted">Across all loan types</div>
+            </div>
+            <div class="metric-icon-box metric-icon-purple">
+                <i class="bi bi-percent"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Section: Quick Calculator & Recent Loans -->
+<div class="row g-4 mb-4">
+    <!-- Quick Calculator Widget -->
+    <div class="col-lg-5">
+        <div class="card-smart h-100">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-lightning-charge-fill text-warning"></i> Quick EMI Estimator
+                </h5>
+                <span class="badge-smart badge-smart-blue">Instant Result</span>
+            </div>
+            <div class="card-smart-body">
+                <form action="{{ url_for('calculate') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label-smart" for="quick_loan_amount">Loan Amount (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted">₹</span>
+                            <input type="number" step="any" class="form-control-smart" id="quick_loan_amount" name="loan_amount" value="1000000" required>
+                        </div>
+                        <div class="input-helper-chips">
+                            <button type="button" class="chip-btn" data-target="quick_loan_amount" data-value="500000">₹5 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="quick_loan_amount" data-value="1000000">₹10 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="quick_loan_amount" data-value="2500000">₹25 Lakh</button>
+                            <button type="button" class="chip-btn" data-target="quick_loan_amount" data-value="5000000">₹50 Lakh</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-smart" for="quick_rate">Annual Rate (%)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" class="form-control-smart" id="quick_rate" name="annual_interest_rate" value="8.5" required>
+                                <span class="input-group-text bg-light text-muted">%</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-smart" for="quick_tenure">Tenure</label>
+                            <div class="input-group">
+                                <input type="number" step="1" class="form-control-smart" id="quick_tenure" name="tenure_value" value="5" required>
+                                <select class="form-select bg-light text-muted" name="tenure_unit" style="max-width: 90px; font-size: 0.85rem;">
+                                    <option value="years" selected>Yrs</option>
+                                    <option value="months">Mos</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-smart" for="quick_type">Loan Purpose</label>
+                        <select class="form-control-smart" id="quick_type" name="loan_type">
+                            {% for lt in loan_types %}
+                                <option value="{{ lt }}">{{ lt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-smart btn-smart-primary">
+                            <i class="bi bi-calculator"></i> Calculate Monthly EMI
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recently Calculated Loans -->
+    <div class="col-lg-7">
+        <div class="card-smart h-100">
+            <div class="card-smart-header">
+                <h5 class="card-smart-title">
+                    <i class="bi bi-clock-history text-primary"></i> Recently Calculated Loans
+                </h5>
+                <a href="{{ url_for('history') }}" class="btn-smart btn-smart-outline btn-sm">
+                    View All ({{ stats.total_calculations }})
+                </a>
+            </div>
+            <div class="card-smart-body p-0">
+                {% if recent_loans %}
+                    <div class="table-smart-responsive">
+                        <table class="table-smart mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Loan Type</th>
+                                    <th>Principal</th>
+                                    <th>Rate</th>
+                                    <th>Tenure</th>
+                                    <th class="text-end">Monthly EMI</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in recent_loans %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge-smart badge-smart-blue">{{ item.loan_type }}</span>
+                                        </td>
+                                        <td class="amount-col">{{ item.loan_amount | currency }}</td>
+                                        <td>{{ item.annual_interest_rate }}%</td>
+                                        <td>{{ item.tenure_months }} mos</td>
+                                        <td class="amount-col text-primary fw-bold">{{ item.monthly_emi | currency }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('results', calc_id=item.id) }}" class="btn-smart btn-smart-outline btn-sm py-1 px-2" title="View Result">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('amortization', calc_id=item.id) }}" class="btn-smart btn-smart-secondary btn-sm py-1 px-2" title="Amortization Schedule">
+                                                <i class="bi bi-calendar3"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-folder2-open display-4 mb-2 d-block text-secondary"></i>
+                        <p class="mb-3">No loan calculations saved yet. Try the Quick Estimator!</p>
+                        <a href="{{ url_for('calculator') }}" class="btn-smart btn-smart-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Create First Calculation
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features & Technical Capabilities -->
+<div class="card-smart">
+    <div class="card-smart-header">
+        <h5 class="card-smart-title">
+            <i class="bi bi-cpu-fill text-primary"></i> Application Architecture & Features
+        </h5>
+        <span class="badge-smart badge-smart-green">Python 3 Semester Project</span>
+    </div>
+    <div class="card-smart-body">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-blue">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Standard Reducing Balance</h6>
+                        <p class="text-muted small mb-0">Implements standard compounding equation with Decimal module accuracy and zero-interest promo loan handling.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-green">
+                        <i class="bi bi-calendar-range"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Full Amortization Schedules</h6>
+                        <p class="text-muted small mb-0">Month-by-month repayment breakdown with opening balance, interest, principal, and exact closing balance zeroing.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-purple">
+                        <i class="bi bi-bar-chart-steps"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Multi-Offer Comparison</h6>
+                        <p class="text-muted small mb-0">Compares up to 3 loan options simultaneously with dynamic Matplotlib bar charts and financial trade-off analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-amber">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">ReportLab PDF Reports</h6>
+                        <p class="text-muted small mb-0">Publication-quality multi-page PDF generation with executive summary, embedded Matplotlib donut chart, and tables.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-blue">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">CSV Data Export</h6>
+                        <p class="text-muted small mb-0">Instant spreadsheet export using Python's built-in csv module for audit, accounting, and spreadsheet analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex gap-3">
+                    <div class="metric-icon-box metric-icon-green">
+                        <i class="bi bi-database-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Persistent SQLite Storage</h6>
+                        <p class="text-muted small mb-0">Parameterized SQL queries prevent injection and safely persist calculations across restarts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
